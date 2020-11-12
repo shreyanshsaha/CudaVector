@@ -23,6 +23,10 @@ class CudaVector {
   // Operator overloading
   T& operator[](unsigned long);
   CudaVector<T> operator+(const CudaVector<T>&);
+  CudaVector<T> operator-(const CudaVector<T>&);
+  CudaVector<T> operator*(const CudaVector<T>&);
+  CudaVector<T> operator*(const double&);
+  CudaVector<T> operator/(const double&);
 
   /**
    * Exception Class
