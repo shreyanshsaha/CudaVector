@@ -1,10 +1,14 @@
+#pragma once
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
 
 #include "CudaVector.h"
 
-// Kernel Function
+/**
+ * Kernel Functions
+ */
+
 template <class T>
 __global__ void add(T* a, T* b, T* c, unsigned long n) {
   unsigned long index = threadIdx.x + blockIdx.x * blockDim.x;
@@ -35,22 +39,39 @@ __global__ void contantDivide(T* a, double b, T* c, unsigned long n) {
   if (index < n) c[index] = a[index] / b;
 }
 
+/** =================
+ *  Class definitions
+ *  =================
+ */
+
+/**
+ * Creates CudaVector object and sets the size
+ */
 template <class T>
 CudaVector<T>::CudaVector(unsigned long size) {
   this->_array = new T[size];
   this->_size = size;
 }
 
+/**
+ * Free up memory
+ */
 template <class T>
 CudaVector<T>::~CudaVector() {
   delete[] _array;
 }
 
+/**
+ * Adds vector in GPU
+ *
+ * Returns CudaVector object
+ */
 template <class T>
 CudaVector<T> CudaVector<T>::operator+(const CudaVector<T>& a) {
   if (this->_size != a._size)
     throw CudaVectorException("Vector size not same!");
 
+  // create result array
   CudaVector<T> result(this->_size);
 
   T *d_a, *d_b, *d_c;
@@ -70,17 +91,20 @@ CudaVector<T> CudaVector<T>::operator+(const CudaVector<T>& a) {
   // copy to host
   cudaMemcpy(result._array, d_c, size, cudaMemcpyDeviceToHost);
 
-  // for (int i = 0; i < this->_size; i++)
-  //   result._array[i] = this->_array[i] + a._array[i];
-
   return result;
 }
 
+/**
+ * Subtract vector in GPU
+ *
+ * Returns CudaVector object
+ */
 template <class T>
 CudaVector<T> CudaVector<T>::operator-(const CudaVector<T>& a) {
   if (this->_size != a._size)
     throw CudaVectorException("Vector size not same!");
 
+  // create result array
   CudaVector<T> result(this->_size);
 
   T *d_a, *d_b, *d_c;
@@ -103,11 +127,17 @@ CudaVector<T> CudaVector<T>::operator-(const CudaVector<T>& a) {
   return result;
 }
 
+/**
+ * Dot Product vector in GPU
+ *
+ * Returns CudaVector object
+ */
 template <class T>
 CudaVector<T> CudaVector<T>::operator*(const CudaVector<T>& a) {
   if (this->_size != a._size)
     throw CudaVectorException("Vector size not same!");
 
+  // create result array
   CudaVector<T> result(this->_size);
 
   T *d_a, *d_b, *d_c;
@@ -130,9 +160,14 @@ CudaVector<T> CudaVector<T>::operator*(const CudaVector<T>& a) {
   return result;
 }
 
-
+/**
+ * Constant Multiplication of vector in GPU
+ *
+ * Returns CudaVector object
+ */
 template <class T>
 CudaVector<T> CudaVector<T>::operator*(const double& a) {
+  // create result array
   CudaVector<T> result(this->_size);
 
   T *d_a, *d_c;
@@ -145,7 +180,8 @@ CudaVector<T> CudaVector<T>::operator*(const double& a) {
   // copy memory to device
   cudaMemcpy(d_a, this->_array, size, cudaMemcpyHostToDevice);
 
-  constantMultiply<<<NUM_BLOCKS, NUM_THREADS_PER_BLOCK>>>(d_a, a, d_c, this->_size);
+  constantMultiply<<<NUM_BLOCKS, NUM_THREADS_PER_BLOCK>>>(d_a, a, d_c,
+                                                          this->_size);
 
   // copy to host
   cudaMemcpy(result._array, d_c, size, cudaMemcpyDeviceToHost);
@@ -153,8 +189,14 @@ CudaVector<T> CudaVector<T>::operator*(const double& a) {
   return result;
 }
 
+/**
+ * Constant Division of vector in GPU
+ *
+ * Returns CudaVector object
+ */
 template <class T>
 CudaVector<T> CudaVector<T>::operator/(const double& a) {
+  // create result array
   CudaVector<T> result(this->_size);
 
   T *d_a, *d_c;
@@ -167,7 +209,8 @@ CudaVector<T> CudaVector<T>::operator/(const double& a) {
   // copy memory to device
   cudaMemcpy(d_a, this->_array, size, cudaMemcpyHostToDevice);
 
-  contantDivide<<<NUM_BLOCKS, NUM_THREADS_PER_BLOCK>>>(d_a, a, d_c, this->_size);
+  contantDivide<<<NUM_BLOCKS, NUM_THREADS_PER_BLOCK>>>(d_a, a, d_c,
+                                                       this->_size);
 
   // copy to host
   cudaMemcpy(result._array, d_c, size, cudaMemcpyDeviceToHost);
@@ -175,9 +218,15 @@ CudaVector<T> CudaVector<T>::operator/(const double& a) {
   return result;
 }
 
+/**
+ * Subscript operator overloading
+ *
+ * Returns CudaVector object
+ */
 template <class T>
 T& CudaVector<T>::operator[](unsigned long i) {
-  if (i > this->_size) throw CudaVectorException("Index out of bounds!");
+  if (i > this->_size || i < 0)
+    throw CudaVectorException("Index out of bounds!");
 
   return this->_array[i];
 }
@@ -188,7 +237,7 @@ unsigned long CudaVector<T>::size() {
 }
 
 /**
- * Exception
+ * Exception Class definition
  */
 
 template <class T>

@@ -4,21 +4,36 @@
 #define NUM_BLOCKS 1024
 #define NUM_THREADS_PER_BLOCK 1024
 
+/**
+ * Class CudaVector
+ * ----------------
+ * 
+ * Handles vector operations such as:
+ * 1. Addition
+ * 2. Division
+ * 3. Subtraction
+ * 4. Multiplication
+ * 
+ * All operations are done on GPU without the programmer
+ * needing to specify how.
+ * 
+ */ 
+
 template <class T>
 class CudaVector {
  private:
-  T* _array;
-  unsigned long _size;
-
-  // kernel functions
-  // __global__ void add(T*, T*, T*, unsigned long);
+  T* _array;                      // vector array
+  unsigned long _size;            // size of vector array
 
  public:
-  CudaVector(unsigned long size);
-  ~CudaVector();
+  CudaVector(unsigned long size); // constructor
+  ~CudaVector();                  // destructor
 
-  // Member functions
-  unsigned long size();
+  /**
+   * Member Functions
+   */ 
+
+  unsigned long size();           // returns size of array
 
   // Operator overloading
   T& operator[](unsigned long);
@@ -41,4 +56,6 @@ class CudaVector {
   };
 };
 
+
+// Including here to avoid import errors
 #include "CudaVector.cu"
